@@ -1,0 +1,406 @@
+{% extends 'base.html' %}
+
+{% block title %}Kitchen Display{% endblock %}
+
+{% block extra_css %}
+<style>
+  body {
+    background: #f8fafc;
+  }
+
+  .order-card {
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    border-left: 6px solid;
+    animation: slideInLeft 0.6s ease-out;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .order-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 4px;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.8), transparent);
+    animation: shimmer 2s infinite;
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .order-card.pending {
+    border-left-color: #f59e0b;
+    background: linear-gradient(135deg, #fef3c7 0%, #ffffff 100%);
+  }
+
+  .order-card.preparing {
+    border-left-color: #2563eb;
+    background: linear-gradient(135deg, #dbeafe 0%, #ffffff 100%);
+  }
+
+  .order-card:hover {
+    transform: translateX(10px) scale(1.02);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  }
+
+  .order-age {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 20px;
+    display: inline-block;
+  }
+
+  .order-number {
+    font-size: 2.8rem;
+    font-weight: 700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+    animation: pulse 2s infinite;
+  }
+
+  .order-items {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    padding: 1rem;
+  }
+
+  .btn {
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  .btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  }
+
+  .section-header {
+    background: white;
+    border-radius: 15px;
+    padding: 1rem 1.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+  }
+
+  @keyframes bounce {
+
+    0%,
+    100% {
+      transform: translateY(0);
+    }
+
+    50% {
+      transform: translateY(-10px);
+    }
+  }
+
+  .new-order {
+    animation: bounce 1s ease-in-out 3;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-4">
+  <div class="d-flex justify-content-between align-items-center mb-4 fade-in">
+    <h2 class="fw-bold">
+      <i class="bi bi-tv me-2"></i>Kitchen Display System
+    </h2>
+    <div class="badge bg-gradient-primary fs-4 shadow" id="clock" style="padding: 0.8rem 1.5rem;"></div>
+  </div>
+
+  <div class="row">
+    <div class="col-md-4">
+      <div class="section-header fade-in">
+        <h4 class="mb-0 text-warning fw-bold">
+          <i class="bi bi-clock-history me-2"></i>Pending Orders
+          <span class="badge bg-warning ms-2 pulse">{{ pending_orders.count }}</span>
+        </h4>
+      </div>
+      <div id="pendingOrders">
+        {% for order in pending_orders %}
+        <div class="card order-card pending mb-3" data-order-id="{{ order.id }}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <div class="order-number text-warning">#{{ order.order_number }}</div>
+                {% if order.customer_name %}
+                <div class="text-muted">{{ order.customer_name }}</div>
+                {% endif %}
+              </div>
+              <div class="text-end">
+                <div class="order-age text-muted">{{ order.created_at|timesince }} ago</div>
+                <button class="btn btn-info mt-2" data-order-id="{{ order.id }}" data-status="PREPARING"
+                  onclick="updateStatus(this.dataset.orderId, this.dataset.status)">
+                  <i class="bi bi-play-fill"></i> Start Preparing
+                </button>
+              </div>
+            </div>
+
+            <div class="order-items">
+              {% for item in order.items.all %}
+              <div class="mb-2">
+                <strong>{{ item.quantity }}x {{ item.menu_item.name }}</strong>
+                {% if item.special_instructions %}
+                <br><small class="text-danger">
+                  <i class="bi bi-exclamation-circle"></i> {{ item.special_instructions }}
+                </small>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+
+            {% if order.notes %}
+            <div class="mt-2 p-2 bg-light rounded">
+              <small><i class="bi bi-chat-left-text"></i> {{ order.notes }}</small>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info">No pending orders</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="section-header fade-in" style="animation-delay: 0.2s;">
+        <h4 class="mb-0 text-info fw-bold">
+          <i class="bi bi-hourglass-split me-2"></i>Preparing Orders
+          <span class="badge bg-info ms-2 pulse">{{ preparing_orders.count }}</span>
+        </h4>
+      </div>
+      <div id="preparingOrders">
+        {% for order in preparing_orders %}
+        <div class="card order-card preparing mb-3" data-order-id="{{ order.id }}">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <div class="order-number text-info">#{{ order.order_number }}</div>
+                {% if order.customer_name %}
+                <div class="text-muted">{{ order.customer_name }}</div>
+                {% endif %}
+              </div>
+              <div class="text-end">
+                <div class="order-age text-muted">{{ order.started_at|timesince }} in progress</div>
+                <button class="btn btn-success mt-2" data-order-id="{{ order.id }}" data-status="READY"
+                  onclick="updateStatus(this.dataset.orderId, this.dataset.status)">
+                  <i class="bi bi-check-circle-fill"></i> Mark Ready
+                </button>
+              </div>
+            </div>
+
+            <div class="order-items">
+              {% for item in order.items.all %}
+              <div class="mb-2">
+                <strong>{{ item.quantity }}x {{ item.menu_item.name }}</strong>
+                {% if item.special_instructions %}
+                <br><small class="text-danger">
+                  <i class="bi bi-exclamation-circle"></i> {{ item.special_instructions }}
+                </small>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+
+            {% if order.notes %}
+            <div class="mt-2 p-2 bg-light rounded">
+              <small><i class="bi bi-chat-left-text"></i> {{ order.notes }}</small>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info">No orders being prepared</div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="section-header fade-in" style="animation-delay: 0.4s;">
+        <h4 class="mb-0 text-success fw-bold">
+          <i class="bi bi-check-circle-fill me-2"></i>Ready to Collect
+          <span class="badge bg-success ms-2 pulse">{{ ready_orders.count }}</span>
+        </h4>
+      </div>
+      <div id="readyOrders">
+        {% for order in ready_orders %}
+        <div class="card order-card mb-3" data-order-id="{{ order.id }}"
+          style="border-left-color: #10b981; background: linear-gradient(135deg, #d1fae5 0%, #ffffff 100%);">
+          <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-3">
+              <div>
+                <div class="order-number text-success">#{{ order.order_number }}</div>
+                {% if order.customer_name %}
+                <div class="text-muted">{{ order.customer_name }}</div>
+                {% endif %}
+              </div>
+              <div class="text-end">
+                <div class="order-age text-muted">Ready {{ order.ready_at|timesince }} ago</div>
+                <button class="btn btn-primary mt-2" data-order-id="{{ order.id }}" data-status="COMPLETED"
+                  onclick="updateStatus(this.dataset.orderId, this.dataset.status)">
+                  <i class="bi bi-check2-all"></i> Mark Collected
+                </button>
+              </div>
+            </div>
+
+            <div class="order-items">
+              {% for item in order.items.all %}
+              <div class="mb-2">
+                <strong>{{ item.quantity }}x {{ item.menu_item.name }}</strong>
+                {% if item.special_instructions %}
+                <br><small class="text-danger">
+                  <i class="bi bi-exclamation-circle"></i> {{ item.special_instructions }}
+                </small>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
+
+            {% if order.notes %}
+            <div class="mt-2 p-2 bg-light rounded">
+              <small><i class="bi bi-chat-left-text"></i> {{ order.notes }}</small>
+            </div>
+            {% endif %}
+          </div>
+        </div>
+        {% empty %}
+        <div class="alert alert-info">No orders ready</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  // Get CSRF token from cookie
+  function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+      const cookies = document.cookie.split(';');
+      for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.substring(0, name.length + 1) === (name + '=')) {
+          cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+          break;
+        }
+      }
+    }
+    return cookieValue;
+  }
+  const csrftoken = getCookie('csrftoken');
+
+  // Update clock
+  function updateClock() {
+    const now = new Date();
+    document.getElementById('clock').textContent = now.toLocaleTimeString();
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  // Fetch and update orders without page reload
+  function fetchOrders() {
+    fetch('/kitchen/')
+      .then(response => response.text())
+      .then(html => {
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Update each section
+        const pendingNew = doc.querySelector('#pendingOrders');
+        const preparingNew = doc.querySelector('#preparingOrders');
+        const readyNew = doc.querySelector('#readyOrders');
+
+        if (pendingNew) {
+          const pendingCurrent = document.querySelector('#pendingOrders');
+          if (pendingCurrent && pendingCurrent.innerHTML !== pendingNew.innerHTML) {
+            pendingCurrent.innerHTML = pendingNew.innerHTML;
+          }
+        }
+
+        if (preparingNew) {
+          const preparingCurrent = document.querySelector('#preparingOrders');
+          if (preparingCurrent && preparingCurrent.innerHTML !== preparingNew.innerHTML) {
+            preparingCurrent.innerHTML = preparingNew.innerHTML;
+          }
+        }
+
+        if (readyNew) {
+          const readyCurrent = document.querySelector('#readyOrders');
+          if (readyCurrent && readyCurrent.innerHTML !== readyNew.innerHTML) {
+            readyCurrent.innerHTML = readyNew.innerHTML;
+          }
+        }
+
+        // Update badges
+        const badges = ['pending', 'preparing', 'ready'];
+        badges.forEach(status => {
+          const newBadge = doc.querySelector(`#${status}Orders`);
+          if (newBadge) {
+            const count = newBadge.querySelectorAll('.order-card').length;
+            const currentBadges = document.querySelectorAll('.badge.pulse');
+            if (currentBadges[badges.indexOf(status)]) {
+              currentBadges[badges.indexOf(status)].textContent = count;
+            }
+          }
+        });
+      })
+      .catch(error => console.error('Error fetching orders:', error));
+  }
+
+  // Update order status
+  function updateStatus(orderId, status) {
+    fetch(`/orders/update-status/${orderId}/`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'X-CSRFToken': csrftoken,
+        'X-Requested-With': 'XMLHttpRequest'
+      },
+      body: `status=${status}`
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          // Update orders without full page reload
+          fetchOrders();
+        }
+      })
+      .catch(error => console.error('Error:', error));
+  }
+
+  // WebSocket connection for real-time updates
+  const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+  const ws = new WebSocket(`${protocol}//${window.location.host}/ws/kitchen/`);
+
+  ws.onmessage = function (event) {
+    const data = JSON.parse(event.data);
+    if (data.action === 'new_order' || data.action === 'status_update') {
+      // Play notification sound
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUqnl87RiGwU7k9n0yXkpBSd+zPDYjT4IEl+37OylUhELSpvh9bpcHAYtfsrw3I4+CRF3yPHaizsIEV+36+ynTxAMUKfh8rViHAU7lNn0yHkoBS2Ay/DajDwKE2G56+qnUBEJSJzg9L5bGwUtfsrw3I4+CRF3yPHaizsIEWC37OunUBALSp3g875eGwYrf8rxp9b0pAIA');
+      audio.play().catch(e => console.log('Audio play failed:', e));
+
+      // Update orders without reload
+      fetchOrders();
+    }
+  };
+
+  ws.onclose = function () {
+    console.log('WebSocket closed, will continue polling...');
+  };
+
+  // Auto-refresh every 5 seconds as backup (no full page reload)
+  setInterval(fetchOrders, 5000);
+</script>
+{% endblock %}

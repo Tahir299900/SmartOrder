@@ -1,0 +1,46 @@
+/* Custom styles for Restaurant Management System */
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f8f9fa;
+}
+
+.navbar-brand {
+  font-weight: bold;
+  font-size: 1.3rem;
+}
+
+.card {
+  border: none;
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.btn {
+  border-radius: 8px;
+}
+
+.table {
+  background-color: white;
+}
+
+/* Order status badges */
+.badge {
+  padding: 0.5em 0.8em;
+  font-size: 0.9rem;
+}
+
+/* Print styles */
+@media print {
+
+  .navbar,
+  .btn,
+  form {
+    display: none !important;
+  }
+
+  .card {
+    border: 1px solid #ddd;
+    box-shadow: none;
+  }
+}

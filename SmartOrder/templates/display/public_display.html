@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Display</title>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: white;
+      font-family: 'Roboto', sans-serif;
+      overflow: hidden;
+    }
+
+    @keyframes gradientShift {
+
+      0%,
+      100% {
+        background-position: 0% 50%;
+      }
+
+      50% {
+        background-position: 100% 50%;
+      }
+    }
+
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 50%, #2563eb 100%);
+      background-size: 200% 200%;
+      animation: gradientShift 10s ease infinite;
+      z-index: -1;
+    }
+
+    .display-container {
+      padding: 2rem;
+      min-height: 100vh;
+    }
+
+    .section-title {
+      font-size: 2.5rem;
+      font-weight: bold;
+      text-align: center;
+      margin-bottom: 2rem;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .order-number {
+      font-size: 5rem;
+      font-weight: 900;
+      background: white;
+      color: #2563eb;
+      padding: 2rem 3rem;
+      border-radius: 25px;
+      margin: 1.5rem;
+      display: inline-block;
+      min-width: 200px;
+      text-align: center;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+      animation: slideInScale 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .order-number::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+      transform: rotate(45deg);
+      animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+      0% {
+        transform: translateX(-100%) rotate(45deg);
+      }
+
+      100% {
+        transform: translateX(100%) rotate(45deg);
+      }
+    }
+
+    @keyframes slideInScale {
+      0% {
+        opacity: 0;
+        transform: translateY(-50px) scale(0.5);
+      }
+
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+
+    .ready-order {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+      animation: pulseGlow 1.5s infinite, slideInScale 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+      box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4), 0 0 30px rgba(5, 150, 105, 0.6);
+    }
+
+    .preparing-order {
+      background: linear-gradient(135deg, #ffffff 0%, #f0f0f0 100%);
+      color: #2563eb;
+      animation: slideInScale 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes pulseGlow {
+
+      0%,
+      100% {
+        transform: scale(1);
+        box-shadow: 0 15px 35px rgba(16, 185, 129, 0.4), 0 0 30px rgba(5, 150, 105, 0.6);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .section-box {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 20px;
+      padding: 2rem;
+      margin-bottom: 2rem;
+      min-height: 300px;
+    }
+
+    .empty-message {
+      font-size: 1.5rem;
+      text-align: center;
+      opacity: 0.7;
+      margin-top: 3rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="display-container">
+    <h1 class="text-center mb-5" style="font-size: 3rem;">
+      <i class="bi bi-shop-window"></i> Restaurant Order Display
+    </h1>
+
+    <div class="row">
+      <div class="col-md-6">
+        <div class="section-box">
+          <div class="section-title">
+            <i class="bi bi-hourglass-split"></i> Now Preparing
+          </div>
+          <div class="text-center">
+            {% for order in preparing_orders %}
+            <div class="order-number preparing-order" data-order-id="{{ order.id }}">
+              #{{ order.order_number }}
+            </div>
+            {% empty %}
+            <div class="empty-message">
+              <i class="bi bi-emoji-smile"></i>
+              <br>No orders being prepared
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="section-box">
+          <div class="section-title">
+            <i class="bi bi-check-circle-fill"></i> Ready to Collect
+          </div>
+          <div class="text-center">
+            {% for order in ready_orders %}
+            <div class="order-number ready-order" data-order-id="{{ order.id }}">
+              #{{ order.order_number }}
+            </div>
+            {% empty %}
+            <div class="empty-message">
+              <i class="bi bi-inbox"></i>
+              <br>No orders ready
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="text-center mt-4">
+      <p style="font-size: 1.2rem; opacity: 0.8;">
+        <i class="bi bi-clock"></i> <span id="clock"></span>
+      </p>
+    </div>
+  </div>
+
+  <audio id="notificationSound" preload="auto">
+    <source
+      src="data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYIG2m98OScTgwOUqnl87RiGwU7k9n0yXkpBSd+zPDYjT4IEl+37OylUhELSpvh9bpcHAYtfsrw3I4+CRF3yPHaizsIEV+36+ynTxAMUKfh8rViHAU7lNn0yHkoBS2Ay/DajDwKE2G56+qnUBEJSJzg9L5bGwUtfsrw3I4+CRF3yPHaizsIEWC37OunUBALSp3g875eGwYrf8rxp9b0pAIA"
+      type="audio/wav">
+  </audio>
+
+  <script>
+    // Update clock
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').textContent = now.toLocaleTimeString();
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Fetch and update orders without page reload
+    async function fetchOrders() {
+      try {
+        const response = await fetch(window.location.href);
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+
+        // Update preparing orders
+        const preparingSection = doc.querySelector('.col-md-6:first-child .text-center');
+        const currentPreparingSection = document.querySelector('.col-md-6:first-child .text-center');
+        if (preparingSection && currentPreparingSection) {
+          const newContent = preparingSection.innerHTML;
+          if (currentPreparingSection.innerHTML !== newContent) {
+            currentPreparingSection.innerHTML = newContent;
+          }
+        }
+
+        // Update ready orders
+        const readySection = doc.querySelector('.col-md-6:last-child .text-center');
+        const currentReadySection = document.querySelector('.col-md-6:last-child .text-center');
+        if (readySection && currentReadySection) {
+          const newContent = readySection.innerHTML;
+          const oldReadyOrders = currentReadySection.querySelectorAll('.ready-order').length;
+          const newReadyOrders = readySection.querySelectorAll('.ready-order').length;
+
+          if (currentReadySection.innerHTML !== newContent) {
+            currentReadySection.innerHTML = newContent;
+
+            // Play sound if new ready order appeared
+            if (newReadyOrders > oldReadyOrders) {
+              const audio = document.getElementById('notificationSound');
+              audio.play().catch(e => console.log('Audio play failed:', e));
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      }
+    }
+
+    // WebSocket connection for real-time updates
+    const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    const ws = new WebSocket(`${protocol}//${window.location.host}/ws/display/`);
+
+    ws.onmessage = function (event) {
+      const data = JSON.parse(event.data);
+
+      if (data.action === 'status_update' && data.status === 'READY') {
+        // Play notification sound for new ready orders
+        const audio = document.getElementById('notificationSound');
+        audio.play().catch(e => console.log('Audio play failed:', e));
+      }
+
+      // Fetch updated orders without full page reload
+      fetchOrders();
+    };
+
+    ws.onclose = function () {
+      console.log('WebSocket closed, will use polling...');
+    };
+
+    // Fallback polling every 5 seconds if WebSocket fails
+    setInterval(() => fetchOrders(), 5000);
+  </script>
+</body>
+
+</html>

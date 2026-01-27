@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Menu Performance - ChefQueue{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h2 class="text-primary"><i class="bi bi-pie-chart me-2"></i>Menu Performance</h2>
+      <p class="text-muted">Analyze which menu items are performing best</p>
+    </div>
+  </div>
+
+  <!-- Time Range Filter -->
+  <div class="row mb-4">
+    <div class="col-12 col-md-6 col-lg-4">
+      <div class="card">
+        <div class="card-body">
+          <form method="get">
+            <label class="form-label">Time Range</label>
+            <select name="days" class="form-select" onchange="this.form.submit()">
+              <option value="7" {% if days==7 %}selected{% endif %}>Last 7 Days</option>
+              <option value="30" {% if days==30 %}selected{% endif %}>Last 30 Days</option>
+              <option value="90" {% if days==90 %}selected{% endif %}>Last 90 Days</option>
+            </select>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Menu Items Performance -->
+  <div class="row mb-4">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Menu Items Performance</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>Item Name</th>
+                  <th>Category</th>
+                  <th>Price</th>
+                  <th>Times Ordered</th>
+                  <th>Total Quantity</th>
+                  <th>Total Revenue</th>
+                  <th>% of Total</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in items_performance %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td><strong>{{ item.menu_item__name }}</strong></td>
+                  <td>
+                    <span class="badge bg-secondary">{{ item.menu_item__category__name }}</span>
+                  </td>
+                  <td>Rs. {{ item.menu_item__price }}</td>
+                  <td>{{ item.times_ordered }}</td>
+                  <td>{{ item.total_quantity }}</td>
+                  <td><strong>Rs. {{ item.total_revenue|floatformat:2 }}</strong></td>
+                  <td>
+                    <div class="progress" style="height: 20px;">
+                      <div class="progress-bar bg-success" role="progressbar" aria-valuemin="0" aria-valuemax="100"
+                        data-width="{{ item.revenue_percentage }}">
+                        {{ item.revenue_percentage|floatformat:1 }}%
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="8" class="text-center text-muted">No menu performance data available</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category Performance -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Category Performance</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>#</th>
+                  <th>Category</th>
+                  <th>Total Quantity Sold</th>
+                  <th>Total Revenue</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for category in category_performance %}
+                <tr>
+                  <td>{{ forloop.counter }}</td>
+                  <td>
+                    <h6 class="mb-0">{{ category.menu_item__category__name }}</h6>
+                  </td>
+                  <td>{{ category.total_quantity }}</td>
+                  <td><strong>Rs. {{ category.total_revenue|floatformat:2 }}</strong></td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted">No category data available</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back Button -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <a href="{% url 'analytics:reports_dashboard' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.progress-bar[data-width]').forEach(function (bar) {
+      bar.style.width = bar.getAttribute('data-width') + '%';
+    });
+  });
+</script>
+{% endblock %}

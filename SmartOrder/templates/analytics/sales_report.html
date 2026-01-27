@@ -1,0 +1,127 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sales Report - ChefQueue{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h2 class="text-primary"><i class="bi bi-graph-up me-2"></i>Sales Report</h2>
+      <p class="text-muted">Detailed sales analysis for selected period</p>
+    </div>
+  </div>
+
+  <!-- Period Filter -->
+  <div class="row mb-4">
+    <div class="col-md-12">
+      <div class="card">
+        <div class="card-body">
+          <form method="get" class="row g-3">
+            <div class="col-12 col-md-6 col-lg-3">
+              <label class="form-label">Period</label>
+              <select name="period" class="form-select" onchange="this.form.submit()">
+                <option value="today" {% if period=='today' %}selected{% endif %}>Today</option>
+                <option value="week" {% if period=='week' %}selected{% endif %}>Last 7 Days</option>
+                <option value="month" {% if period=='month' %}selected{% endif %}>Last 30 Days</option>
+                <option value="custom" {% if period=='custom' %}selected{% endif %}>Custom Range</option>
+              </select>
+            </div>
+            {% if period == 'custom' %}
+            <div class="col-12 col-md-6 col-lg-3">
+              <label class="form-label">Start Date</label>
+              <input type="date" name="start_date" class="form-control" value="{{ start_date|date:'Y-m-d' }}">
+            </div>
+            <div class="col-12 col-md-6 col-lg-3">
+              <label class="form-label">End Date</label>
+              <input type="date" name="end_date" class="form-control" value="{{ end_date|date:'Y-m-d' }}">
+            </div>
+            <div class="col-12 col-md-6 col-lg-3 d-flex align-items-end">
+              <button type="submit" class="btn btn-primary w-100">Apply</button>
+            </div>
+            {% endif %}
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Summary Cards -->
+  <div class="row mb-4">
+    <div class="col-12 col-md-6 mb-3 mb-md-0">
+      <div class="card text-white bg-success">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-receipt me-2"></i>Total Orders</h5>
+          <h2 class="mb-0">{{ total_orders }}</h2>
+        </div>
+      </div>
+    </div>
+    <div class="col-12 col-md-6">
+      <div class="card text-white bg-primary">
+        <div class="card-body">
+          <h5 class="card-title"><i class="bi bi-currency-dollar me-2"></i>Total Revenue</h5>
+          <h2 class="mb-0">Rs. {{ total_revenue|floatformat:2 }}</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sales Data Table -->
+  <div class="row">
+    <div class="col-12">
+      <div class="card">
+        <div class="card-header">
+          <h5 class="mb-0">Daily Sales Breakdown</h5>
+        </div>
+        <div class="card-body">
+          <div class="table-responsive">
+            <table class="table table-hover">
+              <thead class="table-light">
+                <tr>
+                  <th>Date</th>
+                  <th>Total Orders</th>
+                  <th>Total Revenue</th>
+                  <th>Avg per Order</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for item in sales_data %}
+                <tr>
+                  <td>{{ item.date|date:"M d, Y" }}</td>
+                  <td>{{ item.total_orders }}</td>
+                  <td>Rs. {{ item.total_revenue|floatformat:2 }}</td>
+                  <td>Rs. {{ item.avg_per_order|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center text-muted">No sales data available for this period</td>
+                </tr>
+                {% endfor %}
+              </tbody>
+              {% if sales_data %}
+              <tfoot class="table-light">
+                <tr>
+                  <th>Total</th>
+                  <th>{{ total_orders }}</th>
+                  <th>Rs. {{ total_revenue|floatformat:2 }}</th>
+                  <th>Rs. {{ avg_revenue_per_order|floatformat:2 }}</th>
+                </tr>
+              </tfoot>
+              {% endif %}
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Back Button -->
+  <div class="row mt-4">
+    <div class="col-12">
+      <a href="{% url 'analytics:reports_dashboard' %}" class="btn btn-secondary">
+        <i class="bi bi-arrow-left me-2"></i>Back to Dashboard
+      </a>
+    </div>
+  </div>
+</div>
+{% endblock %}

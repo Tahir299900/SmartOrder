@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h2 class="mb-4"><i class="bi bi-person-circle"></i> My Profile</h2>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Personal Information</h5>
+        </div>
+        <div class="card-body">
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="text-muted">Employee ID</label>
+              <p class="h5">{{ profile.employee_id }}</p>
+            </div>
+            <div class="col-md-6">
+              <label class="text-muted">Username</label>
+              <p class="h5">{{ user.username }}</p>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="text-muted">Full Name</label>
+              <p class="h5">{{ user.get_full_name|default:"-" }}</p>
+            </div>
+            <div class="col-md-6">
+              <label class="text-muted">Email</label>
+              <p class="h5">{{ user.email|default:"-" }}</p>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="text-muted">Phone Number</label>
+              <p class="h5">{{ profile.phone_number|default:"-" }}</p>
+            </div>
+            <div class="col-md-6">
+              <label class="text-muted">Hire Date</label>
+              <p class="h5">{{ profile.hire_date|date:"M d, Y" }}</p>
+            </div>
+          </div>
+
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <label class="text-muted">Account Status</label>
+              <p>
+                {% if profile.is_active %}
+                <span class="badge bg-success">Active</span>
+                {% else %}
+                <span class="badge bg-danger">Inactive</span>
+                {% endif %}
+              </p>
+            </div>
+            <div class="col-md-6">
+              <label class="text-muted">Role</label>
+              <p>
+                {% if user.is_superuser or profile.is_admin %}
+                <span class="badge bg-primary">Administrator</span>
+                {% else %}
+                <span class="badge bg-info">Employee</span>
+                {% endif %}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card">
+        <div class="card-header">
+          <h5>Quick Stats</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="text-muted">Member Since</label>
+            <p class="h6">{{ user.date_joined|date:"M d, Y" }}</p>
+          </div>
+          <div class="mb-3">
+            <label class="text-muted">Last Login</label>
+            <p class="h6">
+              {% if user.last_login %}
+              {{ user.last_login|date:"M d, Y H:i" }}
+              {% else %}
+              Never
+              {% endif %}
+            </p>
+          </div>
+          <div class="d-grid gap-2">
+            <a href="{% url 'password_change' %}" class="btn btn-outline-primary btn-sm">
+              <i class="bi bi-key"></i> Change Password
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

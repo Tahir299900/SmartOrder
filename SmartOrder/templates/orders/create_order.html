@@ -1,0 +1,314 @@
+{% extends 'base.html' %}
+
+{% block title %}Create Order{% endblock %}
+
+{% block extra_css %}
+<style>
+  .search-box {
+    position: sticky;
+    top: 70px;
+    background: white;
+    z-index: 100;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
+  }
+
+  .menu-table {
+    font-size: 0.95rem;
+  }
+
+  .menu-table tbody tr {
+    transition: all 0.3s ease;
+    cursor: pointer;
+  }
+
+  .menu-table tbody tr:hover {
+    background-color: rgba(37, 99, 235, 0.05);
+    transform: scale(1.01);
+  }
+
+  .qty-input {
+    width: 80px;
+    text-align: center;
+    font-weight: bold;
+    font-size: 1.1rem;
+  }
+
+  .qty-btn {
+    width: 35px;
+    height: 35px;
+    padding: 0;
+    font-size: 1.2rem;
+    line-height: 1;
+  }
+
+  .price-col {
+    font-weight: bold;
+    color: #2563eb;
+    font-size: 1.1rem;
+  }
+
+  .category-header {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-top: 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .selected-row {
+    background-color: rgba(16, 185, 129, 0.1) !important;
+    border-left: 4px solid #10b981;
+  }
+
+  .order-summary {
+    position: sticky;
+    top: 150px;
+  }
+
+  .total-amount {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: #10b981;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-lg-8">
+      <h2 class="mb-4"><i class="bi bi-plus-circle"></i> Create New Order</h2>
+
+      <form method="post" id="orderForm">
+        {% csrf_token %}
+
+        <div class="card mb-4">
+          <div class="card-header bg-gradient-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-person"></i> Customer Information</h5>
+          </div>
+          <div class="card-body">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label for="customer_name" class="form-label">Customer Name</label>
+                <input type="text" class="form-control" id="customer_name" name="customer_name"
+                  placeholder="Walk-in customer">
+              </div>
+              <div class="col-md-6 mb-3">
+                <label for="notes" class="form-label">Order Notes</label>
+                <input type="text" class="form-control" id="notes" name="notes" placeholder="Any special requests?">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header bg-gradient-primary text-white">
+            <h5 class="mb-0"><i class="bi bi-cart"></i> Select Menu Items</h5>
+          </div>
+          <div class="card-body p-0">
+            <div class="search-box">
+              <input type="text" id="searchInput" class="form-control form-control-lg"
+                placeholder="🔍 Search menu items...">
+            </div>
+
+            <div class="table-responsive">
+              <table class="table menu-table table-hover mb-0">
+                <thead class="table-light sticky-top">
+                  <tr>
+                    <th style="width: 30%;">Item</th>
+                    <th style="width: 25%;">Description</th>
+                    <th style="width: 10%;" class="text-center">Price</th>
+                    <th style="width: 15%;" class="text-center">Quantity</th>
+                    <th style="width: 20%;">Special Instructions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for category in categories %}
+                  <tr class="category-row">
+                    <td colspan="5">
+                      <div class="category-header">
+                        <i class="bi bi-tag-fill me-2"></i>{{ category.name }}
+                      </div>
+                    </td>
+                  </tr>
+                  {% for item in menu_items %}
+                  {% if item.category == category %}
+                  <tr class="item-row" data-item-name="{{ item.name|lower }}" data-item-id="{{ item.id }}">
+                    <td class="fw-bold">{{ item.name }}</td>
+                    <td class="text-muted small">{{ item.description }}</td>
+                    <td class="text-center price-col">${{ item.price }}</td>
+                    <td class="text-center">
+                      <div class="d-flex align-items-center justify-content-center gap-1">
+                        <button type="button" class="btn btn-sm btn-outline-danger qty-btn" data-item-id="{{ item.id }}"
+                          data-change="-1">-</button>
+                        <input type="number" class="form-control qty-input" id="qty_{{ item.id }}"
+                          name="quantity_{{ item.id }}" min="0" value="0" max="99" data-item-id="{{ item.id }}">
+                        <button type="button" class="btn btn-sm btn-outline-success qty-btn"
+                          data-item-id="{{ item.id }}" data-change="1">+</button>
+                      </div>
+                    </td>
+                    <td>
+                      <input type="text" class="form-control form-control-sm" name="instructions_{{ item.id }}"
+                        placeholder="e.g., No onions" id="instr_{{ item.id }}">
+                    </td>
+                  </tr>
+                  {% endif %}
+                  {% endfor %}
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-lg-4">
+      <div class="order-summary">
+        <div class="card shadow-lg">
+          <div class="card-header bg-gradient-success text-white">
+            <h5 class="mb-0"><i class="bi bi-receipt"></i> Order Summary</h5>
+          </div>
+          <div class="card-body">
+            <div id="orderItems" class="mb-3">
+              <p class="text-muted text-center py-3">No items selected</p>
+            </div>
+            <hr>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <span class="fs-5">Total:</span>
+              <span class="total-amount" id="totalAmount">$0.00</span>
+            </div>
+            <button type="button" onclick="submitOrder()" class="btn btn-success btn-lg w-100 mb-2">
+              <i class="bi bi-check-circle"></i> Create Order
+            </button>
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary w-100">
+              <i class="bi bi-arrow-left"></i> Cancel
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Search functionality
+  document.getElementById('searchInput').addEventListener('input', function (e) {
+    const searchTerm = e.target.value.toLowerCase();
+    const rows = document.querySelectorAll('.item-row');
+
+    rows.forEach(row => {
+      const itemName = row.getAttribute('data-item-name');
+      if (itemName.includes(searchTerm)) {
+        row.style.display = '';
+      } else {
+        row.style.display = 'none';
+      }
+    });
+  });
+
+  // Change quantity with buttons
+  function changeQty(itemId, change) {
+    const input = document.getElementById('qty_' + itemId);
+    let value = parseInt(input.value) || 0;
+    value = Math.max(0, Math.min(99, value + change));
+    input.value = value;
+    updateRow(itemId);
+    updateSummary();
+  }
+
+  // Update row styling
+  function updateRow(itemId) {
+    const input = document.getElementById('qty_' + itemId);
+    const row = input.closest('tr');
+    if (parseInt(input.value) > 0) {
+      row.classList.add('selected-row');
+    } else {
+      row.classList.remove('selected-row');
+    }
+    updateSummary();
+  }
+
+  // Event listeners for +/- buttons
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.qty-btn').forEach(btn => {
+      btn.addEventListener('click', function () {
+        const itemId = this.getAttribute('data-item-id');
+        const change = parseInt(this.getAttribute('data-change'));
+        changeQty(itemId, change);
+      });
+    });
+
+    // Event listeners for quantity inputs
+    document.querySelectorAll('[name^="quantity_"]').forEach(input => {
+      input.addEventListener('change', function () {
+        const itemId = this.getAttribute('data-item-id');
+        updateRow(itemId);
+      });
+    });
+  });
+
+  // Update order summary
+  function updateSummary() {
+    const items = [];
+    let total = 0;
+
+    document.querySelectorAll('.item-row').forEach(row => {
+      const itemId = row.getAttribute('data-item-id');
+      const qtyInput = document.getElementById('qty_' + itemId);
+      const qty = parseInt(qtyInput.value) || 0;
+
+      if (qty > 0) {
+        const name = row.querySelector('td:first-child').textContent;
+        const priceText = row.querySelector('.price-col').textContent;
+        const price = parseFloat(priceText.replace('$', ''));
+        const subtotal = qty * price;
+        total += subtotal;
+
+        items.push({
+          name: name,
+          qty: qty,
+          price: price,
+          subtotal: subtotal
+        });
+      }
+    });
+
+    const orderItemsDiv = document.getElementById('orderItems');
+    if (items.length === 0) {
+      orderItemsDiv.innerHTML = '<p class="text-muted text-center py-3">No items selected</p>';
+    } else {
+      orderItemsDiv.innerHTML = items.map(item => `
+        <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom">
+          <div>
+            <div class="fw-bold">${item.name}</div>
+            <small class="text-muted">${item.qty} × $${item.price.toFixed(2)}</small>
+          </div>
+          <div class="fw-bold text-success">$${item.subtotal.toFixed(2)}</div>
+        </div>
+      `).join('');
+    }
+
+    document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+  }
+
+  // Submit form
+  function submitOrder() {
+    const form = document.getElementById('orderForm');
+    const hasItems = Array.from(document.querySelectorAll('[name^="quantity_"]'))
+      .some(input => parseInt(input.value) > 0);
+
+    if (!hasItems) {
+      alert('Please select at least one item!');
+      return;
+    }
+
+    form.submit();
+  }
+
+</script>
+{% endblock %}

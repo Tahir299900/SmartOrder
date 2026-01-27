@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}Order Success{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="row justify-content-center mt-5">
+    <div class="col-md-6">
+      <div class="card shadow text-center">
+        <div class="card-body p-5">
+          <div class="mb-4">
+            <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+          </div>
+          <h2 class="mb-3">Order Created Successfully!</h2>
+          <h1 class="display-1 text-primary mb-4">#{{ order.order_number }}</h1>
+
+          <div class="mb-4">
+            <p class="lead">Total Amount: <strong>${{ order.total_amount }}</strong></p>
+            {% if order.customer_name %}
+            <p>Customer: {{ order.customer_name }}</p>
+            {% endif %}
+          </div>
+
+          <div class="d-grid gap-2">
+            <a href="{% url 'create_order' %}" class="btn btn-primary btn-lg">
+              <i class="bi bi-plus-circle"></i> Create Another Order
+            </a>
+            <a href="{% url 'order_detail' order.id %}" class="btn btn-outline-primary">
+              <i class="bi bi-eye"></i> View Order Details
+            </a>
+            <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+              <i class="bi bi-house"></i> Back to Home
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

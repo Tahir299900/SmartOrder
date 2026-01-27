@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block title %}Login - Restaurant System{% endblock %}
+
+{% block extra_css %}
+<style>
+  .login-container {
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  }
+
+  .login-card {
+    border-radius: 20px;
+    overflow: hidden;
+    animation: fadeIn 0.8s ease-out;
+  }
+
+  .login-header {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: white;
+    padding: 3rem 2rem;
+    text-align: center;
+  }
+
+  .login-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    animation: pulse 2s infinite;
+  }
+
+  .form-floating {
+    position: relative;
+    margin-bottom: 1.5rem;
+  }
+
+  .form-floating input {
+    border-radius: 12px;
+    padding: 1rem;
+    border: 2px solid #e0e0e0;
+  }
+
+  .form-floating input:focus {
+    border-color: #2563eb;
+    box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.25);
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="login-container">
+  <div class="container">
+    <div class="row justify-content-center">
+      <div class="col-md-5 col-lg-4">
+        <div class="card login-card shadow-lg border-0">
+          <div class="login-header">
+            <i class="bi bi-shop-window login-icon"></i>
+            <h2 class="fw-bold mb-2">Restaurant System</h2>
+            <p class="mb-0">Sign in to continue</p>
+          </div>
+
+          <div class="card-body p-5">
+            {% if form.errors %}
+            <div class="alert alert-danger border-0 shadow-sm fade-in">
+              <i class="bi bi-exclamation-triangle me-2"></i>
+              Invalid username or password. Please try again.
+            </div>
+            {% endif %}
+
+            <form method="post">
+              {% csrf_token %}
+
+              <div class="form-floating mb-4">
+                <input type="text" name="username" class="form-control" id="id_username" placeholder="Username" required
+                  autofocus>
+                <label for="id_username">
+                  <i class="bi bi-person me-2"></i>Username
+                </label>
+              </div>
+
+              <div class="form-floating mb-4">
+                <input type="password" name="password" class="form-control" id="id_password" placeholder="Password"
+                  required>
+                <label for="id_password">
+                  <i class="bi bi-lock me-2"></i>Password
+                </label>
+              </div>
+
+              <div class="d-grid gap-2">
+                <button type="submit" class="btn btn-primary btn-lg shadow">
+                  <i class="bi bi-box-arrow-in-right me-2"></i>Sign In
+                </button>
+              </div>
+
+              <input type="hidden" name="next" value="{{ next }}">
+            </form>
+
+            <div class="text-center mt-4">
+              <small class="text-muted">
+                <i class="bi bi-shield-check me-1"></i>
+                Secure Login
+              </small>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center mt-4">
+          <p class="text-white">
+            <i class="bi bi-info-circle me-2"></i>
+            Default: admin / admin
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

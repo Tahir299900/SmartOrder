@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+
+{% block title %}Order #{{ order.order_number }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2><i class="bi bi-receipt"></i> Order #{{ order.order_number }}</h2>
+    <a href="{% url 'order_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Back to Orders
+    </a>
+  </div>
+
+  <div class="row">
+    <div class="col-md-8">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Order Items</h5>
+        </div>
+        <div class="card-body">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Item</th>
+                <th>Qty</th>
+                <th>Price</th>
+                <th>Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for item in order.items.all %}
+              <tr>
+                <td>
+                  <strong>{{ item.menu_item.name }}</strong>
+                  {% if item.special_instructions %}
+                  <br><small class="text-muted">Note: {{ item.special_instructions }}</small>
+                  {% endif %}
+                </td>
+                <td>{{ item.quantity }}</td>
+                <td>${{ item.unit_price }}</td>
+                <td>${{ item.subtotal }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+            <tfoot>
+              <tr>
+                <td colspan="3" class="text-end"><strong>Total:</strong></td>
+                <td><strong>${{ order.total_amount }}</strong></td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-4">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5>Order Information</h5>
+        </div>
+        <div class="card-body">
+          <p><strong>Status:</strong>
+            {% if order.status == 'PENDING' %}
+            <span class="badge bg-warning">{{ order.get_status_display }}</span>
+            {% elif order.status == 'PREPARING' %}
+            <span class="badge bg-info">{{ order.get_status_display }}</span>
+            {% elif order.status == 'READY' %}
+            <span class="badge bg-success">{{ order.get_status_display }}</span>
+            {% elif order.status == 'COMPLETED' %}
+            <span class="badge bg-secondary">{{ order.get_status_display }}</span>
+            {% else %}
+            <span class="badge bg-danger">{{ order.get_status_display }}</span>
+            {% endif %}
+          </p>
+          <p><strong>Customer:</strong> {{ order.customer_name|default:"Walk-in" }}</p>
+          <p><strong>Created:</strong> {{ order.created_at|date:"M d, Y H:i" }}</p>
+          {% if order.started_at %}
+          <p><strong>Started:</strong> {{ order.started_at|date:"M d, Y H:i" }}</p>
+          {% endif %}
+          {% if order.ready_at %}
+          <p><strong>Ready:</strong> {{ order.ready_at|date:"M d, Y H:i" }}</p>
+          {% endif %}
+          {% if order.completed_at %}
+          <p><strong>Completed:</strong> {{ order.completed_at|date:"M d, Y H:i" }}</p>
+          {% endif %}
+          {% if order.notes %}
+          <p><strong>Notes:</strong><br>{{ order.notes }}</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h5>Update Status</h5>
+        </div>
+        <div class="card-body">
+          <form method="post" action="{% url 'update_order_status' order.id %}">
+            {% csrf_token %}
+            <select name="status" class="form-select mb-3">
+              {% for value, label in order.STATUS_CHOICES %}
+              <option value="{{ value }}" {% if order.status==value %}selected{% endif %}>
+                {{ label }}
+              </option>
+              {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-primary w-100">
+              <i class="bi bi-arrow-repeat"></i> Update Status
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
