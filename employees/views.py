@@ -16,6 +16,14 @@ def employee_list(request):
     }
     return render(request, 'employees/employee_list.html', context)
 
+@admin_only
+def customer_list(request):
+    """List all employees - admin only"""
+    employees = EmployeeProfile.objects.select_related('user').all()
+    context = {
+        'employees': employees,
+    }
+    return render(request, 'employees/customer_list.html', context)
 
 @admin_only
 def employee_create(request):
