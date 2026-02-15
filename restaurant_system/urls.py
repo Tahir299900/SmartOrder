@@ -20,6 +20,7 @@ urlpatterns = [
     path('kitchen/', include('kitchen.urls')),
     path('display/', include('display.urls')),
     path('employees/', include('employees.urls')),
+    path('customers/', include('customers.urls')),
     path('reports/', include('analytics.urls')),
     path('accounts/login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
     path('accounts/logout/', auth_views.LogoutView.as_view(next_page='/'), name='logout'),

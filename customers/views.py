@@ -17,15 +17,6 @@ def customer_list(request):
     return render(request, 'customers/customer_list.html', context)
 
 @admin_only
-def customer_list(request):
-    """List all customers - admin only"""
-    customers = CustomerProfile.objects.select_related('user').all()
-    context = {
-        'customers': customers,
-    }
-    return render(request, 'customers/customer_list.html', context)
-
-@admin_only
 def customer_create(request):
     """Create new customer - admin only"""
     if request.method == 'POST':
@@ -65,13 +56,13 @@ def customer_create(request):
     else:
         # Generate next customer ID
         last_profile = CustomerProfile.objects.all().order_by('id').last()
-        if last_profile and last_profile.customer_id.startswith('EMP'):
+        if last_profile and last_profile.customer_id.startswith('CUS'):
             try:
-                next_id = f"EMP{int(last_profile.customer_id[3:]) + 1:04d}"
+                next_id = f"CUS{int(last_profile.customer_id[3:]) + 1:04d}"
             except:
-                next_id = "EMP0001"
+                next_id = "CUS0001"
         else:
-            next_id = "EMP0001"
+            next_id = "CUS0001"
         
         form = CustomerCreateForm(initial={'customer_id': next_id})
     
@@ -144,13 +135,13 @@ def customer_profile(request):
     if created:
         # Generate proper customer ID
         last_profile = CustomerProfile.objects.exclude(pk=profile.pk).order_by('id').last()
-        if last_profile and last_profile.customer_id.startswith('EMP'):
+        if last_profile and last_profile.customer_id.startswith('CUS'):
             try:
-                profile.customer_id = f"EMP{int(last_profile.customer_id[3:]) + 1:04d}"
+                profile.customer_id = f"CUSP{int(last_profile.customer_id[3:]) + 1:04d}"
             except:
-                profile.customer_id = "EMP0001"
+                profile.customer_id = "CUSP0001"
         else:
-            profile.customer_id = "EMP0001"
+            profile.customer_id = "CUS0001"
         profile.save()
     
     context = {

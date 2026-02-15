@@ -42,11 +42,11 @@ def create_or_update_customer_profile(sender, instance, created, **kwargs):
             # Generate customer ID
             last_profile = CustomerProfile.objects.all().order_by('id').last()
             if last_profile:
-                emp_id = f"EMP{int(last_profile.customer_id[3:]) + 1:04d}"
+                cus_id = f"CUS{int(last_profile.customer_id[3:]) + 1:04d}"
             else:
-                emp_id = "EMP0001"
+                cus_id = "CUS0001"
             
             CustomerProfile.objects.create(
                 user=instance,
-                customer_id=emp_id
+                customer_id=cus_id
             )
