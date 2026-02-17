@@ -32,21 +32,21 @@ class EmployeeProfile(models.Model):
         return self.user.is_superuser or self.user.groups.filter(name='Admin').exists()
 
 
-# Signal to create/update employee profile
-@receiver(post_save, sender=User)
-def create_or_update_employee_profile(sender, instance, created, **kwargs):
-    """Auto-create employee profile for non-superuser users"""
-    if created and not instance.is_superuser:
-        # Check if profile doesn't exist
-        if not hasattr(instance, 'employee_profile'):
-            # Generate employee ID
-            last_profile = EmployeeProfile.objects.all().order_by('id').last()
-            if last_profile:
-                emp_id = f"EMP{int(last_profile.employee_id[3:]) + 1:04d}"
-            else:
-                emp_id = "EMP0001"
+# # Signal to create/update employee profile
+# @receiver(post_save, sender=User)
+# def create_or_update_employee_profile(sender, instance, created, **kwargs):
+#     """Auto-create employee profile for non-superuser users"""
+#     if created and not instance.is_superuser:
+#         # Check if profile doesn't exist
+#         if not hasattr(instance, 'employee_profile'):
+#             # Generate employee ID
+#             last_profile = EmployeeProfile.objects.all().order_by('id').last()
+#             if last_profile:
+#                 emp_id = f"EMP{int(last_profile.employee_id[3:]) + 1:04d}"
+#             else:
+#                 emp_id = "EMP0001"
             
-            EmployeeProfile.objects.create(
-                user=instance,
-                employee_id=emp_id
-            )
+#             EmployeeProfile.objects.create(
+#                 user=instance,
+#                 employee_id=emp_id
+#             )

@@ -32,21 +32,21 @@ class CustomerProfile(models.Model):
         return self.user.is_superuser or self.user.groups.filter(name='Admin').exists()
 
 
-# Signal to create/update customer profile
-@receiver(post_save, sender=User)
-def create_or_update_customer_profile(sender, instance, created, **kwargs):
-    """Auto-create customer profile for non-superuser users"""
-    if created and not instance.is_superuser:
-        # Check if profile doesn't exist
-        if not hasattr(instance, 'customer_profile'):
-            # Generate customer ID
-            last_profile = CustomerProfile.objects.all().order_by('id').last()
-            if last_profile:
-                cus_id = f"CUS{int(last_profile.customer_id[3:]) + 1:04d}"
-            else:
-                cus_id = "CUS0001"
+# # Signal to create/update customer profile
+# @receiver(post_save, sender=User)
+# def create_or_update_customer_profile(sender, instance, created, **kwargs):
+#     """Auto-create customer profile for non-superuser users"""
+#     if created and not instance.is_superuser:
+#         # Check if profile doesn't exist
+#         if not hasattr(instance, 'customer_profile'):
+#             # Generate customer ID
+#             last_profile = CustomerProfile.objects.all().order_by('id').last()
+#             if last_profile:
+#                 cus_id = f"CUS{int(last_profile.customer_id[3:]) + 1:04d}"
+#             else:
+#                 cus_id = "CUS0001"
             
-            CustomerProfile.objects.create(
-                user=instance,
-                customer_id=cus_id
-            )
+#             CustomerProfile.objects.create(
+#                 user=instance,
+#                 customer_id=cus_id
+#             )
