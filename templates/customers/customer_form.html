@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if edit_mode %}Edit Customer{% else %}Add New Customer{% endif %}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h2>
+      <i class="bi bi-person-{% if edit_mode %}pencil{% else %}plus{% endif %}"></i>
+      {% if edit_mode %}Edit Customer{% else %}Add New Customer{% endif %}
+    </h2>
+    <a href="{% url 'customer_list' %}" class="btn btn-secondary">
+      <i class="bi bi-arrow-left"></i> Back to List
+    </a>
+  </div>
+
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <div class="card">
+        <div class="card-body">
+          <form method="post">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+              {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            {% if not edit_mode %}
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Username *</label>
+                {{ form.username }}
+                {% if form.username.errors %}
+                <div class="text-danger">{{ form.username.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Customer ID *</label>
+                {{ form.customer_id }}
+                {% if form.customer_id.errors %}
+                <div class="text-danger">{{ form.customer_id.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Password *</label>
+                {{ form.password }}
+                {% if form.password.errors %}
+                <div class="text-danger">{{ form.password.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Confirm Password *</label>
+                {{ form.confirm_password }}
+                {% if form.confirm_password.errors %}
+                <div class="text-danger">{{ form.confirm_password.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+            {% else %}
+            <div class="mb-3">
+              <label class="form-label">Customer ID</label>
+              {{ form.customer_id }}
+              <small class="text-muted">Customer ID cannot be changed</small>
+              {% if form.customer_id.errors %}
+              <div class="text-danger">{{ form.customer_id.errors }}</div>
+              {% endif %}
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Username</label>
+              <input type="text" class="form-control" value="{{ profile.user.username }}" readonly>
+              <small class="text-muted">Username cannot be changed</small>
+            </div>
+            {% endif %}
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">First Name</label>
+                {{ form.first_name }}
+                {% if form.first_name.errors %}
+                <div class="text-danger">{{ form.first_name.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Last Name</label>
+                {{ form.last_name }}
+                {% if form.last_name.errors %}
+                <div class="text-danger">{{ form.last_name.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-md-6">
+                <label class="form-label">Email</label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                <div class="text-danger">{{ form.email.errors }}</div>
+                {% endif %}
+              </div>
+              <div class="col-md-6">
+                <label class="form-label">Phone Number</label>
+                {{ form.phone_number }}
+                {% if form.phone_number.errors %}
+                <div class="text-danger">{{ form.phone_number.errors }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+              <a href="{% url 'customer_list' %}" class="btn btn-secondary">
+                <i class="bi bi-x-circle"></i> Cancel
+              </a>
+              <button type="submit" class="btn btn-primary">
+                <i class="bi bi-check-circle"></i> {% if edit_mode %}Update{% else %}Create{% endif %} Customer
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
