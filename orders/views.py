@@ -1,3 +1,4 @@
+import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.http import JsonResponse
@@ -7,10 +8,18 @@ from menu.models import MenuItem, Category
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 import stripe
+import boto3
 from django.contrib import messages
+from django.http import JsonResponse
+from .lambda_utils import invoke_lambda  # Import the function we wrote above
 
 # Initialize Stripe with your secret key
 stripe.api_key = ''; 
+
+
+# Create Lambda client
+lambda_client = boto3.client('lambda', region_name='us-east-1')  # Use the region where your Lambda is deployed
+
 
 def create_order_and_process_payment(request):
     if request.method == 'POST':
@@ -60,6 +69,7 @@ def create_order_and_process_payment(request):
             return JsonResponse({'error': 'Invalid payment method'}, status=400)
     return JsonResponse({'error': 'Invalid request'}, status=400)
 
+
 @login_required
 def create_order(request):
     categories = Category.objects.all()
@@ -103,6 +113,30 @@ def create_order(request):
                 }
             }
         )
+
+        # Check if the customer_name is empty or null, and set a default name
+        customer_name = order.customer_name or "Unknown Customer"  # Default name if empty or None
+
+        # Prepare the event data to send to Lambda (ensure these match the expected parameters)
+        event_data = {
+            "recipient_email": "devahmedrazaturk@gmail.com",
+            "customer_name": customer_name,
+            "order_number": order.order_number 
+        }
+
+        try:
+            # Invoke the Lambda function
+            response = lambda_client.invoke(
+                FunctionName='SendEmailFromSES',  # Your Lambda function name
+                InvocationType='RequestResponse',  # 'Event' for async invocation
+                Payload=json.dumps(event_data)  # Pass the event data to Lambda
+            )
+
+            # Read the response from Lambda
+            result = response['Payload'].read().decode('utf-8')
+
+        except Exception as e:
+            return JsonResponse({"error": str(e)})
         
         return redirect('order_success', order_id=order.id)
     
