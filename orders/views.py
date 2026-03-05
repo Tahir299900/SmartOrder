@@ -6,7 +6,59 @@ from .models import Order, OrderItem
 from menu.models import MenuItem, Category
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+import stripe
+from django.contrib import messages
 
+# Initialize Stripe with your secret key
+stripe.api_key = ''; 
+
+def create_order_and_process_payment(request):
+    if request.method == 'POST':
+        payment_method = request.POST.get('payment_method')
+        stripe_token = request.POST.get('stripe_token', None)
+        
+        customer_name = request.POST.get('customer_name')
+        notes = request.POST.get('notes')
+
+        # Create the order in the database
+        order = Order.objects.create(
+            customer_name=customer_name,
+            notes=notes,
+            status='Pending'
+        )
+        
+        # If 'Card' is selected, process payment through Stripe
+        if payment_method == 'card' and stripe_token:
+            try:
+                intent = stripe.PaymentIntent.create(
+                    amount=5000,  # Amount in cents (for example, $50)
+                    currency='usd',
+                    payment_method=stripe_token,
+                    confirmation_method='manual',
+                    confirm=True
+                )
+
+                if intent.status == 'succeeded':
+                    order.status = 'Paid'
+                    order.save()
+
+                    return JsonResponse({'success': True, 'order_id': order.id})
+                else:
+                    return JsonResponse({'error': 'Payment failed'}, status=400)
+
+            except stripe.error.CardError as e:
+                return JsonResponse({'error': str(e)}, status=400)
+
+        elif payment_method == 'cash':
+            # For Cash payment, just mark order as 'Cash Pending'
+            order.status = 'Cash Pending'
+            order.save()
+
+            return JsonResponse({'success': True, 'order_id': order.id})
+
+        else:
+            return JsonResponse({'error': 'Invalid payment method'}, status=400)
+    return JsonResponse({'error': 'Invalid request'}, status=400)
 
 @login_required
 def create_order(request):

@@ -182,7 +182,10 @@
               <span class="fs-5">Total:</span>
               <span class="total-amount" id="totalAmount">$0.00</span>
             </div>
-            <button type="button" onclick="submitOrder()" class="btn btn-success btn-lg w-100 mb-2">
+            {% comment %} <button type="button" onclick="submitOrder()" class="btn btn-success btn-lg w-100 mb-2">
+              <i class="bi bi-check-circle"></i> Create Order
+            </button> {% endcomment %}
+            <button type="button" id="createOrderBtn" class="btn btn-success btn-lg w-100 mb-2">
               <i class="bi bi-check-circle"></i> Create Order
             </button>
             <a href="{% url 'home' %}" class="btn btn-outline-secondary w-100">
@@ -194,6 +197,130 @@
     </div>
   </div>
 </div>
+
+
+<!-- Payment Modal -->
+<div class="modal fade" id="paymentModal" tabindex="-1" aria-labelledby="paymentModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="paymentModalLabel">Complete Your Payment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form id="paymentForm" method="post">
+          {% csrf_token %}
+          
+          <!-- Payment Method Selection -->
+          <div class="mb-3">
+            <label for="payment_method" class="form-label">Payment Method</label>
+            <select class="form-select" id="payment_method" name="payment_method" required>
+              <option value="cash">Cash</option>
+              <option value="card">Credit Card</option>
+            </select>
+          </div>
+          
+          <!-- Stripe Card Input (Only shown when 'Card' is selected) -->
+          <div id="stripeFields" style="display: none;">
+            <label for="cardDetails" class="form-label">Credit Card Details</label>
+            <div id="card-element">
+              <!-- Stripe Elements card input will go here -->
+            </div>
+          </div>
+
+          <!-- Total Amount -->
+          <div class="mb-3">
+            <label for="amount" class="form-label">Amount</label>
+            <input type="text" class="form-control" id="amount" name="amount" readonly>
+          </div>
+
+          <button type="submit" class="btn btn-success">Submit Payment</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Add these in the <head> or just before closing </body> tag -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>  <!-- jQuery -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.0/dist/js/bootstrap.bundle.min.js"></script>  <!-- Bootstrap JS -->
+
+<!-- Stripe JS -->
+<script src="https://js.stripe.com/v3/"></script>
+
+<script>
+// Handle "Create Order" button click to show the payment modal
+document.getElementById('createOrderBtn').addEventListener('click', function(e) {
+  e.preventDefault(); // Prevent default form submission
+  const paymentMethod = document.getElementById('payment_method').value; // Get selected payment method
+  
+  // Open the payment modal
+  $('#paymentModal').modal('show');
+  
+   // Set the amount in the payment modal from the totalAmount field
+    const totalAmount = document.getElementById('totalAmount').textContent.replace('£', ''); 
+    console.log('Total Amount:', totalAmount); // Debugging log
+    $('#amount').val(totalAmount); 
+
+});
+
+// Handle payment method selection
+document.getElementById('payment_method').addEventListener('change', function () {
+  const selectedMethod = this.value;
+  const stripeFields = document.getElementById('stripeFields');
+  
+  // If "Card" is selected, show Stripe payment fields
+  if (selectedMethod === 'card') {
+    stripeFields.style.display = 'block';
+    if (!window.stripe) {
+      window.stripe = Stripe('pk_test_51T7OdHRM4e4bdVbtEnsuPJzOzYqZWaWT7sxG31XSZdisd8nGHKrxSKYTcJuqUjskaqujlGIJFIpdeJukBD2UxFrR00G3xY5T5r');  // Add your Stripe public key here
+      window.elements = window.stripe.elements();
+      window.card = window.elements.create('card');
+      window.card.mount('#card-element');
+    }
+  } else {
+    stripeFields.style.display = 'none';
+  }
+});
+
+// Handle payment submission
+document.getElementById('paymentForm').addEventListener('submit', async function (e) {
+  e.preventDefault();  // Prevent default form submission
+
+  const paymentMethod = document.getElementById('payment_method').value;
+
+  if (paymentMethod === 'card') {
+    // Handle Stripe payment
+    const {token, error} = await window.stripe.createToken(window.card);
+    if (error) {
+      alert('Payment error: ' + error.message);
+      return;
+    }
+
+    // Add Stripe token to the form data
+    const stripeTokenInput = document.createElement('input');
+    stripeTokenInput.type = 'hidden';
+    stripeTokenInput.name = 'stripe_token';
+    stripeTokenInput.value = token.id;
+    document.getElementById('paymentForm').appendChild(stripeTokenInput);
+  }
+
+  // After payment is handled, submit the order form
+  submitOrder();
+});
+
+// Submit the order form after payment
+function submitOrder() {
+  // Close the payment modal
+  $('#paymentModal').modal('hide');
+
+  // Submit the order form after successful payment
+  const form = document.getElementById('orderForm');
+  form.submit();
+}
+
+</script>
 
 <script>
   // Search functionality
@@ -293,7 +420,7 @@
       `).join('');
     }
 
-    document.getElementById('totalAmount').textContent = '$' + total.toFixed(2);
+    document.getElementById('totalAmount').textContent = '£' + total.toFixed(2);
   }
 
   // Submit form
