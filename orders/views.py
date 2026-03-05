@@ -119,7 +119,7 @@ def create_order(request):
 
         # Prepare the event data to send to Lambda (ensure these match the expected parameters)
         event_data = {
-            "recipient_email": "devahmedrazaturk@gmail.com",
+            "recipient_email": "tahirhussainse90@gmail.com",
             "customer_name": customer_name,
             "order_number": order.order_number 
         }
