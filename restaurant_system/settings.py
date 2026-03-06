@@ -86,27 +86,27 @@ WSGI_APPLICATION = 'restaurant_system.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'restaurant_db',
-        'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': 'localhost',
-        'PORT': '3306',
-    }
-}
-
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.mysql',
 #         'NAME': 'restaurant_db',
-#         'USER': 'admin',
-#         'PASSWORD': 'password123',
-#         'HOST': 'restaurant-db.cibewq8u6rio.us-east-1.rds.amazonaws.com',
+#         'USER': 'root',
+#         'PASSWORD': 'root',
+#         'HOST': 'localhost',
 #         'PORT': '3306',
 #     }
 # }
+
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'restaurant_db',
+        'USER': 'admin',
+        'PASSWORD': 'password123',
+        'HOST': 'restaurant-db.cibewq8u6rio.us-east-1.rds.amazonaws.com',
+        'PORT': '3306',
+    }
+}
 
 
 # Password validation
