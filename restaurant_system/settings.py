@@ -26,7 +26,15 @@ SECRET_KEY = 'django-insecure-29k!k(bv%)&!x52*llr8^16$w((wc7e&g%gm2-l&b+-bsov7!-
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    "smartorder-ypva.onrender.com",
+    "localhost",
+    "127.0.0.1",
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://smartorder-ypva.onrender.com",
+]
 
 
 # Application definition
